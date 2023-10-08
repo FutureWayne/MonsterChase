@@ -6,33 +6,33 @@ void Player::movePlayerByInput(const char direction)
     {
     case 'W':
     case 'w':
-        if (y > 0)
+        if (position.y > 0)
         {
-            y--;
+            position += Vector2D(0, -1); // Up
         }
         break;
 
     case 'A':
     case 'a':
-        if (x > 0)
+        if (position.x > 0)
         {
-            x--;
+            position += Vector2D(-1, 0); // Left
         }
         break;
 
     case 'S':
     case 's':
-        if (y < GRID_SIZE - 1)
+        if (position.y < GRID_SIZE - 1)
         {
-            y++;
+            position += Vector2D(0, 1); // Down
         }
         break;
 
     case 'D':
     case 'd':
-        if (x < GRID_SIZE - 1)
+        if (position.x < GRID_SIZE - 1)
         {
-            x++;
+            position += Vector2D(1, 0); // Right
         }
         break;
 

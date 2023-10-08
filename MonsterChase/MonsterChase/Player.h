@@ -3,7 +3,7 @@
 
 class Player : public Pawn {
 public:
-    Player(int initX, int initY, char* initName) : Pawn(initX, initY, initName) {
+    Player(Vector2D initPosition, char* initName) : Pawn(initPosition, initName) {
         symbol = 'P';
     }
 

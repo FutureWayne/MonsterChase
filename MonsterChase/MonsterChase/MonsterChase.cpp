@@ -3,6 +3,8 @@
 
 #include "Monster.h"
 #include "Player.h"
+#include "Vector2D.h"
+#include "Vector2DUnitTest.h"
 using namespace std;
 
 
@@ -22,10 +24,10 @@ void displayGrid(char grid[GRID_SIZE][GRID_SIZE], Player* player, Monster** mons
     system("cls");
     clearGrid(grid);
 
-    grid[player->getY()][player->getX()] = player->getSymbol();
+    grid[player->getPosition().y][player->getPosition().x] = player->getSymbol();
     for (int i = 0; i < num_monsters; i++)
     {
-        grid[monstersPtr[i]->getY()][monstersPtr[i]->getX()] = monstersPtr[i]->getSymbol();
+        grid[monstersPtr[i]->getPosition().y][monstersPtr[i]->getPosition().x] = monstersPtr[i]->getSymbol();
     }
 
     for (int i = 0; i < GRID_SIZE; i++) 
@@ -38,27 +40,27 @@ void displayGrid(char grid[GRID_SIZE][GRID_SIZE], Player* player, Monster** mons
     }
 
     // Display player's details
-    std::cout << "Player: " << player->getName() << " at (" << player->getX() << ", " << player->getY() << ")" << std::endl;
+    std::cout << "Player: " << player->getName() << " at (" << player->getPosition().x << ", " << player->getPosition().y << ")" << std::endl;
 
     // Display monstersPtr' details
     for (int i = 0; i < num_monsters; i++) {
-        std::cout << "Monster: " << monstersPtr[i]->getName() << " at (" << monstersPtr[i]->getX() << ", " << monstersPtr[i]->getY() << ")" << std::endl;
+        std::cout << "Monster: " << monstersPtr[i]->getName() << " at (" << monstersPtr[i]->getPosition().x << ", " << monstersPtr[i]->getPosition().y << ")" << std::endl;
     }
 }
 
 
 bool checkCollision(const Pawn& pawn1, const Pawn& pawn2)
 {
-    int xDiff = abs(pawn1.getX() - pawn2.getX());
-    int yDiff = abs(pawn1.getY() - pawn2.getY());
-
-    // Directly next to each other or on top of each other
-    return (xDiff <= 1 && yDiff <= 1);
+    Vector2D diff = pawn1.getPosition() - pawn2.getPosition();
+    return (abs(diff.x) <= 1 && abs(diff.y) <= 1);
 }
 
 
 int main()
 {
+    Vector2DUnitTest();
+
+
     char grid[GRID_SIZE][GRID_SIZE];
 	char tempName[256];
     int num_monsters;
@@ -66,10 +68,10 @@ int main()
     
     cout << "Enter your name: ";
     cin.getline(tempName, 256);
-    Player* player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, tempName);
+    Player* player = new Player(Vector2D(GRID_SIZE / 2, GRID_SIZE / 2), tempName);
 
     // Initializing monstersPtr
-    cout << "Enter the number of monstersPtr: ";
+    cout << "Enter the number of monsters: ";
     cin >> num_monsters;
     while (num_monsters < 0 || num_monsters > 50) {
         cout << "Invalid number. Please enter between 0 and 50: ";
@@ -83,7 +85,7 @@ int main()
         cin.getline(tempName, 256);
         int initX = rand() % GRID_SIZE;
         int initY = rand() % GRID_SIZE;
-        monstersPtr[i] = new Monster(initX, initY, tempName);
+        monstersPtr[i] = new Monster(Vector2D(initX, initY), tempName);
     }
 
 

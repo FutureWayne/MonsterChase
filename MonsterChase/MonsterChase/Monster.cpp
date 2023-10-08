@@ -3,26 +3,25 @@
 
 void Monster::moveMonsterToPlayer(const Pawn& player)
 {
-    const int playerX = player.getX();
-    const int playerY = player.getY();
+    const Vector2D playerPosition = player.getPosition();
     
     // Lambda for moving along X
     auto moveAlongX = [&]() {
-        x += (x < playerX) ? 1 : -1;
+        position.x += (position.x < playerPosition.x) ? 1 : -1;
     };
 
     // Lambda for moving along Y
     auto moveAlongY = [&]() {
-        y += (y < playerY) ? 1 : -1;
+        position.y += (position.y < playerPosition.y) ? 1 : -1;
     };
 
     // Randomly decide to move in x or y axis
     const bool moveInX = rand() % 2;
 
     if (moveInX) {
-        (x != playerX) ? moveAlongX() : moveAlongY();
+        (position.x != playerPosition.x) ? moveAlongX() : moveAlongY();
     }
     else {
-        (y != playerY) ? moveAlongY() : moveAlongX();
+        (position.y != playerPosition.y) ? moveAlongY() : moveAlongX();
     }
 }
