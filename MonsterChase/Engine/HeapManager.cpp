@@ -19,46 +19,99 @@ namespace HeapManagerProxy
 		pOutstandingAllocationList = nullptr;
 	}
 
-	HeapManager::~HeapManager() {
+	HeapManager::~HeapManager()
+    {
 		// Cleanup logic here, like releasing allocated memory blocks and the heap itself
 	}
+    
 
-	void* HeapManager::malloc(size_t i_size) {
-		MemoryBlock* pBlock = GetFreeMemoryBlock();
-		assert(pBlock); // Ensure a free block is available
+	void* HeapManager::alloc(size_t size)
+	{
+		assert(size > 0);
 
-		pBlock->pBaseAddress = TheHeap.pBaseAddress;
-		pBlock->BlockSize = i_size;
-		TrackAllocation(pBlock);
+		MemoryBlock* currentBlock = pFreeMemoryBlockList;
+		MemoryBlock* previousBlock = nullptr;
 
-		// Shrink the heap
-		TheHeap.pBaseAddress = static_cast<char*>(TheHeap.pBaseAddress) + i_size;
-		TheHeap.BlockSize -= i_size;
+		while (currentBlock)
+		{
+			if (currentBlock->BlockSize >= size)
+			{
+				// Found a suitable block
 
-		return pBlock->pBaseAddress;
+				// Adjust the size of the current block
+				currentBlock->BlockSize -= size;
+
+				// Create a new block for the allocation
+				MemoryBlock* newBlock = nullptr;
+				newBlock->pBaseAddress = currentBlock->pBaseAddress;
+				newBlock->BlockSize = size;
+
+				// track allocation
+				newBlock->pNextBlock = pOutstandingAllocationList;
+				pOutstandingAllocationList = newBlock;
+
+				// Adjust the free memory block list
+				if (currentBlock->BlockSize == 0)
+				{
+					if (previousBlock)
+					{
+						previousBlock->pNextBlock = currentBlock->pNextBlock;
+					}
+					else
+					{
+						pFreeMemoryBlockList = currentBlock->pNextBlock;
+					}
+				}
+
+				return newBlock->pBaseAddress;
+			}
+
+			previousBlock = currentBlock;
+			currentBlock = currentBlock->pNextBlock;
+		}
+
+		// No suitable block found
+		return nullptr;
 	}
 
-	MemoryBlock* HeapManager::GetFreeMemoryBlock() {
-		// Pop a free block from the free blocks list
-		if (!pFreeMemoryBlockList) return nullptr; // Return nullptr if no free blocks are available
+    bool HeapManager::free(void* ptr)
+    {
+        assert(ptr);
 
-		MemoryBlock* pBlock = pFreeMemoryBlockList;
-		pFreeMemoryBlockList = pFreeMemoryBlockList->pNextBlock; // Update the head of the free blocks list
-		return pBlock;
-	}
+        // Find the block in the outstanding allocation list
+        MemoryBlock* currentBlock = pOutstandingAllocationList;
+        MemoryBlock* previousBlock = nullptr;
 
-	void HeapManager::TrackAllocation(MemoryBlock* pBlock) {
-		// Push the allocated block onto the allocated blocks list
-		pBlock->pNextBlock = pOutstandingAllocationList;
-		pOutstandingAllocationList = pBlock;
-	}
+        while (currentBlock)
+        {
+            if (currentBlock->pBaseAddress == ptr)
+            {
+                // Found the block to free
 
-	HeapManager* CreateHeapManager(void* pHeapMemory, size_t heapSize, unsigned int numDescriptors) {
-		// You might dynamically allocate the HeapAllocator instance here.
-		// However, remember to properly deallocate it later to avoid memory leaks.
-		auto* pHeapManager = new HeapManager(pHeapMemory, heapSize, numDescriptors);
-		return pHeapManager;
-	}
+                // Remove the block from the outstanding allocation list
+                if (previousBlock)
+                {
+                    previousBlock->pNextBlock = currentBlock->pNextBlock;
+                }
+                else
+                {
+                    pOutstandingAllocationList = currentBlock->pNextBlock;
+                }
+
+                // Add the block back to the free memory block list
+                currentBlock->pNextBlock = pFreeMemoryBlockList;
+                pFreeMemoryBlockList = currentBlock;
+
+                return true;
+            }
+
+            previousBlock = currentBlock;
+            currentBlock = currentBlock->pNextBlock;
+        }
+
+        // Block not found in the outstanding allocation list
+        return false;
+    }
 	
 }
 

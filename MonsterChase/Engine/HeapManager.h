@@ -5,19 +5,27 @@
 
 namespace HeapManagerProxy
 {
-    struct MemoryBlock {
+    struct MemoryBlock
+    {
         void* pBaseAddress;
         size_t BlockSize;
         struct MemoryBlock* pNextBlock;
     };
 
-    class HeapManager {
+    class HeapManager
+    {
     public:
         HeapManager(void* pHeapMemory, size_t heapSize, unsigned int numDescriptors);
         ~HeapManager();
 
-        void* malloc(size_t i_size);
-        void free(void* pMemory);
+        void* alloc(size_t i_size);
+        bool IsAllocated(void* p_memory);
+        MemoryBlock* FindAllocatedMemoryBlock(void* p_memory);
+        void RemoveFromAllocatedList(MemoryBlock* memory_block);
+        void AddToFreeList(MemoryBlock* memory_block);
+        void MergeAdjacentFreeBlocks(MemoryBlock* memory_block);
+        bool free(void* pMemory);
+        bool Contains(void* pMemory) const;
 
     private:
         MemoryBlock TheHeap;
