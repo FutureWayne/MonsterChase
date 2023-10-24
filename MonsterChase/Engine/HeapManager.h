@@ -27,35 +27,30 @@ namespace HeapManagerProxy
         bool IsAllocated(void* ptr) const;
         void Collect();
 
-        void* alloc(size_t size);
+        void* alloc(const size_t size, size_t alignment);
         bool free(void* ptr);
     
     private:
         
         std::pair<MemoryBlock*, MemoryBlock*> findFreeBlock(size_t size);
         
-        MemoryBlock* pEntireHeap;
+        size_t m_heapSize;
+        void* pHeapBaseAddress;
         MemoryBlock* pFreeMemoryBlockList; // Linked list of free blocks
         MemoryBlock* pOutstandingAllocationList; // Linked list of allocated blocks
-        size_t theHeapSize;
     };
 
     HeapManager* CreateHeapManager(void* pHeapMemory, size_t heapSize, unsigned int numDescriptors);
 
     void Destroy(HeapManager* pHeapManager);
 
-    inline void* alloc(HeapManager* pHeapManager, size_t size)
-    {
-        assert(pHeapManager != nullptr);
-
-        return pHeapManager->alloc(size);
-    }
+    void* alloc(HeapManager* pHeapManager, const size_t size);
 
     inline void* alloc(HeapManager* pHeapManager, size_t size, size_t alignment)
     {
         assert(pHeapManager != nullptr);
 
-        return pHeapManager->alloc(size);
+        return pHeapManager->alloc(size, alignment);
     }
 
     inline void Collect(HeapManager* pHeapManager)
