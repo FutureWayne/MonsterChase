@@ -74,7 +74,7 @@ namespace HeapManagerProxy
 	void* HeapManager::alloc(const size_t size, size_t alignment)
 	{
 		assert(size > 0);
-		
+    
 		auto [suitableBlock, previousBlock] = findFreeBlock(size + alignment);
 
 		// If no suitable block is found, attempt to defragment the heap
@@ -96,19 +96,17 @@ namespace HeapManagerProxy
 		{
 			alignmentOffset = alignment - alignmentOffset;
 		}
-		
+
+    
 		// Create a new MemoryBlock structure to manage the allocated memory
 		MemoryBlock* newBlock = new MemoryBlock;
-		newBlock->pBaseAddress = suitableBlock->pBaseAddress;
+		newBlock->pBaseAddress = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(suitableBlock->pBaseAddress) + alignmentOffset);
 		newBlock->BlockSize = size;
 
-		// Calculate the address where the allocation will start
-		void* allocAddress = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(suitableBlock->pBaseAddress) + alignmentOffset);
-
 		// Adjust the suitableBlock to represent the remaining free memory after the allocation
-		suitableBlock->pBaseAddress = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(allocAddress) + size);
+		suitableBlock->pBaseAddress = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(suitableBlock->pBaseAddress) + size);
 		suitableBlock->BlockSize -= (size + alignmentOffset);
-		
+    
 		// If the block's size is reduced to 0, remove it from the free list
 		if (suitableBlock->BlockSize == 0)
 		{
@@ -123,7 +121,6 @@ namespace HeapManagerProxy
 		}
 
 		// track allocation
-
 		if (newBlock != pOutstandingAllocationList) {
 			newBlock->pNextBlock = pOutstandingAllocationList;
 			pOutstandingAllocationList = newBlock;
@@ -133,6 +130,7 @@ namespace HeapManagerProxy
 
 		return newBlock->pBaseAddress;
 	}
+
 	
 	bool HeapManager::free(void* ptr)
 	{
